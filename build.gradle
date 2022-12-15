@@ -1,0 +1,77 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '2.7.6'
+	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+	id "org.openapi.generator" version "6.0.0"
+}
+
+group = 'com.petstore'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.openapitools:jackson-databind-nullable:0.2.4'
+	implementation group: 'javax.validation', name: 'validation-api', version: '2.0.0.Final'
+	compileOnly 'org.projectlombok:lombok'
+	compileOnly group: 'io.swagger.core.v3', name: 'swagger-annotations', version: '2.0.0'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	annotationProcessor 'org.projectlombok:lombok'
+	annotationProcessor 'io.swagger:swagger-annotations:1.6.8'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+def petstoreApiYml = "$rootDir/src/main/resources/petstore-api.yml".toString()
+
+task buildPetStoreServerCode(type: GenerateTask) {
+	generatorName = "spring"
+	inputSpec = petstoreApiYml
+	outputDir = "$buildDir/generated".toString()
+
+	groupId = "$project.group"
+	id = "$project.name-java-client"
+	version = "$project.version"
+	apiPackage = "com.petstore.api"
+	modelPackage = "com.petstore.api.model"
+	enablePostProcessFile = true
+	skipOverwrite = false
+	configOptions = [
+			configPackage       : "com.petstore.api.config",
+			java8               : "true",
+			dateLibrary         : "java8",
+			serializationLibrary: "jackson",
+			library             : "spring-boot",
+			useBeanValidation   : "true",
+			interfaceOnly       : "true",
+			serializableModel   : "true",
+			useTags             : "true"
+	]
+}
+
+// code will be generated during compilation
+compileJava.dependsOn(buildPetStoreServerCode)
+
+sourceSets {
+	main {
+		java {
+			srcDir "$buildDir/generated/src/main/java"
+		}
+	}
+}
