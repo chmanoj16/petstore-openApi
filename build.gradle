@@ -43,10 +43,10 @@ def petstoreApiYml = "$rootDir/src/main/resources/petstore-api.yml".toString()
 task buildPetStoreServerCode(type: GenerateTask) {
 	generatorName = "spring"
 	inputSpec = petstoreApiYml
-	outputDir = "$buildDir/generated".toString()
+	outputDir = "$buildDir/java-server".toString()
 
 	groupId = "$project.group"
-	id = "$project.name-java-client"
+	id = "$project.name-java-server"
 	version = "$project.version"
 	apiPackage = "com.petstore.api"
 	modelPackage = "com.petstore.api.model"
@@ -65,8 +65,32 @@ task buildPetStoreServerCode(type: GenerateTask) {
 	]
 }
 
+task buildPetStoreJavaClient(type: GenerateTask) {
+	generatorName = "java"
+	inputSpec = petstoreApiYml
+	outputDir = "$buildDir/java-client".toString()
+
+	groupId = "$project.group"
+	id = "$project.name-java-client"
+	version = "$project.version"
+	apiPackage = "com.petstore.api"
+	invokerPackage = "com.petstore.api.invoker"
+	modelPackage = "com.petstore.api.model"
+	enablePostProcessFile = true
+	skipOverwrite = false
+	configOptions = [
+			java8               : "true",
+			dateLibrary         : "java8",
+			serializationLibrary: "jackson",
+			library             : "resttemplate",
+			useBeanValidation   : "true",
+			enableBuilderSupport: "true"
+	]
+}
+
 // code will be generated during compilation
 compileJava.dependsOn(buildPetStoreServerCode)
+compileJava.dependsOn(buildPetStoreJavaClient)
 
 sourceSets {
 	main {
